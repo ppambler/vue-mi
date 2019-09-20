@@ -22,7 +22,9 @@
         <div class="input-code">
           <input type="text" placeholder="短信验证码" autocomplete="off" />
         </div>
-        <div class="get-code">{{ codeMsg }}</div>
+        <div class="get-code" :class="codeClasses" @click="getCode">
+          {{ codeMsg }}
+        </div>
       </div>
       <div class="password" v-show="!isSmsLogin">
         <input :type="pwdType" placeholder="密码" autocomplete="off" />
@@ -74,7 +76,9 @@ export default {
     return {
       isSmsLogin: true,
       codeMsg: '获取验证码',
-      isOpen: false
+      isOpen: false,
+      countdown: 60,
+      timerId: null
     }
   },
   computed: {
@@ -97,6 +101,11 @@ export default {
       return {
         [`icon-${this.eyeIcon}`]: true
       }
+    },
+    codeClasses() {
+      return {
+        ['countdown']: this.countdown !== 60 ? true : false
+      }
     }
   },
   methods: {
@@ -105,6 +114,18 @@ export default {
     },
     toggleOpen() {
       this.isOpen = !this.isOpen
+    },
+    getCode() {
+      this.timerId = setInterval(() => {
+        this.countdown--
+        this.codeMsg = `重新发送(${this.countdown})`
+        if (this.countdown === 0) {
+          clearInterval(this.timerId)
+          this.timerId = null
+          this.countdown = 60
+          this.codeMsg = '重新发送'
+        }
+      }, 1000)
     }
   }
 }
@@ -175,7 +196,7 @@ $input-cursor-color: #000;
     }
   }
   .get-code {
-    padding-right: 18px;
+    padding: 18px;
     color: $code-color;
     font-size: 14px;
     white-space: nowrap;
@@ -260,5 +281,8 @@ $input-cursor-color: #000;
 }
 .icon-eyes {
   color: #ff6700;
+}
+.countdown {
+  color: #858585 !important;
 }
 </style>
