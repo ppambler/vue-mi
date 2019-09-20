@@ -8,21 +8,32 @@
     </div>
     <div class="login">
       <div class="username">
-        <div class="area-code">
+        <div class="area-code" v-show="isSmsLogin">
           <span class="code-txt">+86</span>
           <svg class="icon" aria-hidden="true">
             <use xlink:href="#icon-right" />
           </svg>
         </div>
         <div class="input-username">
-          <input type="text" :placeholder="placeholderTxt" />
+          <input type="text" :placeholder="placeholderTxt" autocomplete="off" />
         </div>
       </div>
-      <div class="code">
+      <div class="code" v-show="isSmsLogin">
         <div class="input-code">
-          <input type="text" placeholder="短信验证码" />
+          <input type="text" placeholder="短信验证码" autocomplete="off" />
         </div>
         <div class="get-code">{{ codeMsg }}</div>
+      </div>
+      <div class="password" v-show="!isSmsLogin">
+        <input :type="pwdType" placeholder="密码" autocomplete="off" />
+        <svg
+          class="icon"
+          :class="eyeClasses"
+          aria-hidden="true"
+          @click="toggleOpen"
+        >
+          <use :xlink:href="`#icon-${eyeIcon}`" />
+        </svg>
       </div>
       <div class="login-btn-default">{{ mainBtn }}</div>
       <div class="login-btn" @click="changeBtn">{{ subBtn }}</div>
@@ -62,7 +73,8 @@ export default {
   data() {
     return {
       isSmsLogin: true,
-      codeMsg: '获取验证码'
+      codeMsg: '获取验证码',
+      isOpen: false
     }
   },
   computed: {
@@ -74,11 +86,25 @@ export default {
     },
     placeholderTxt() {
       return this.isSmsLogin ? '手机号码' : '邮箱/手机号码/小米ID'
+    },
+    pwdType() {
+      return this.isOpen ? 'text' : 'password'
+    },
+    eyeIcon() {
+      return this.pwdType === 'password' ? 'no-eyes' : 'eyes'
+    },
+    eyeClasses() {
+      return {
+        [`icon-${this.eyeIcon}`]: true
+      }
     }
   },
   methods: {
     changeBtn() {
       this.isSmsLogin = !this.isSmsLogin
+    },
+    toggleOpen() {
+      this.isOpen = !this.isOpen
     }
   }
 }
@@ -93,6 +119,7 @@ $code-color: #2ea5e5;
 $login-btn-color: #ff6700;
 $login-btn-border-color: #d3d3d3;
 $input-border-color: #c7c7c7;
+$input-cursor-color: #000;
 .layout {
   height: 100vh;
   padding: 0 12px;
@@ -118,21 +145,46 @@ $input-border-color: #c7c7c7;
   display: flex;
   align-items: center;
   border-bottom: 1px solid $input-border-color;
+
+  caret-color: $input-cursor-color;
   .area-code {
+    display: inline-flex;
     padding-right: 12px;
     padding-left: 12px;
   }
+  .input-username {
+    width: 100%;
+    input {
+      width: 100%;
+    }
+  }
 }
-.code {
+.code,
+.password {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
   border-bottom: 1px solid $input-border-color;
+
+  caret-color: $input-cursor-color;
+  .input-code {
+    width: 100%;
+    input {
+      width: 100%;
+    }
+  }
   .get-code {
     padding-right: 18px;
     color: $code-color;
     font-size: 14px;
+    white-space: nowrap;
+  }
+}
+.password {
+  width: 100%;
+  > input {
+    width: 100%;
   }
 }
 
@@ -201,5 +253,12 @@ $input-border-color: #c7c7c7;
       color: #4a4a4a;
     }
   }
+}
+
+.icon-no-eyes {
+  color: #4a4a4a;
+}
+.icon-eyes {
+  color: #ff6700;
 }
 </style>
