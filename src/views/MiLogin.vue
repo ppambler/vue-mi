@@ -15,7 +15,7 @@
           </svg>
         </div>
         <div class="input-username">
-          <input type="text" placeholder="手机号码" />
+          <input type="text" :placeholder="placeholderTxt" />
         </div>
       </div>
       <div class="code">
@@ -71,6 +71,9 @@ export default {
     },
     subBtn() {
       return this.isSmsLogin ? '用户名密码登录' : '手机短信登录/注册'
+    },
+    placeholderTxt() {
+      return this.isSmsLogin ? '手机号码' : '邮箱/手机号码/小米ID'
     }
   },
   methods: {
