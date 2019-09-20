@@ -22,10 +22,10 @@
         <div class="input-code">
           <input type="text" placeholder="短信验证码" />
         </div>
-        <div class="get-code">获取验证码</div>
+        <div class="get-code">{{ codeMsg }}</div>
       </div>
-      <div class="login-btn-defalut">立即登录/注册</div>
-      <div class="login-btn">用户名密码登录</div>
+      <div class="login-btn-default">{{ mainBtn }}</div>
+      <div class="login-btn" @click="changeBtn">{{ subBtn }}</div>
       <div class="other-login">
         <fieldset class="oth-tit">
           <legend align="center" class="oth-txt">其他方式登录</legend>
@@ -59,7 +59,25 @@
 import axios from 'axios'
 import md5 from 'blueimp-md5'
 export default {
-  data() {}
+  data() {
+    return {
+      isSmsLogin: true,
+      codeMsg: '获取验证码'
+    }
+  },
+  computed: {
+    mainBtn() {
+      return this.isSmsLogin ? '立即登录/注册' : '登录'
+    },
+    subBtn() {
+      return this.isSmsLogin ? '用户名密码登录' : '手机短信登录/注册'
+    }
+  },
+  methods: {
+    changeBtn() {
+      this.isSmsLogin = !this.isSmsLogin
+    }
+  }
 }
 </script>
 <style lang="scss" scoped>
@@ -115,7 +133,7 @@ $input-border-color: #c7c7c7;
   }
 }
 
-.login-btn-defalut {
+.login-btn-default {
   margin-bottom: 28px;
   color: #fff;
   line-height: 42px;
