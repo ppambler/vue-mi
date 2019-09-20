@@ -7,15 +7,20 @@
       <h4 class="title">小米帐号登录</h4>
     </div>
     <div class="login">
-      <div class="username">
+      <div class="username" :class="errMsgClasses">
         <div class="area-code" v-show="isSmsLogin">
           <span class="code-txt">+86</span>
           <svg class="icon" aria-hidden="true">
             <use xlink:href="#icon-right" />
           </svg>
         </div>
-        <div class="input-username">
-          <input type="text" :placeholder="placeholderTxt" autocomplete="off" />
+        <div class="input-username" @input="clearErr">
+          <input
+            type="text"
+            v-model="phone"
+            :placeholder="placeholderTxt"
+            autocomplete="off"
+          />
         </div>
       </div>
       <div class="code" v-show="isSmsLogin">
@@ -36,6 +41,12 @@
         >
           <use :xlink:href="`#icon-${eyeIcon}`" />
         </svg>
+      </div>
+      <div v-show="errMsg" class="errMsg">
+        <svg class="icon icon-warning" aria-hidden="true">
+          <use xlink:href="#icon-warning" />
+        </svg>
+        <span class="errMsgTxt">{{ errMsg }}</span>
       </div>
       <div class="login-btn-default">{{ mainBtn }}</div>
       <div class="login-btn" @click="changeBtn">{{ subBtn }}</div>
@@ -78,7 +89,9 @@ export default {
       codeMsg: '获取验证码',
       isOpen: false,
       countdown: 60,
-      timerId: null
+      timerId: null,
+      errMsg: '',
+      phone: ''
     }
   },
   computed: {
@@ -106,6 +119,11 @@ export default {
       return {
         ['countdown']: this.countdown !== 60 ? true : false
       }
+    },
+    errMsgClasses() {
+      return {
+        ['errMsg-s']: this.errMsg ? true : false
+      }
     }
   },
   methods: {
@@ -116,6 +134,10 @@ export default {
       this.isOpen = !this.isOpen
     },
     getCode() {
+      if (!this.phone) {
+        this.errMsg = '请输入手机号'
+        return
+      }
       this.timerId = setInterval(() => {
         this.countdown--
         this.codeMsg = `重新发送(${this.countdown})`
@@ -126,6 +148,9 @@ export default {
           this.codeMsg = '重新发送'
         }
       }, 1000)
+    },
+    clearErr() {
+      this.errMsg = ''
     }
   }
 }
@@ -185,7 +210,6 @@ $input-cursor-color: #000;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
   border-bottom: 1px solid $input-border-color;
 
   caret-color: $input-cursor-color;
@@ -210,6 +234,7 @@ $input-cursor-color: #000;
 }
 
 .login-btn-default {
+  margin-top: 24px;
   margin-bottom: 28px;
   color: #fff;
   line-height: 42px;
@@ -284,5 +309,20 @@ $input-cursor-color: #000;
 }
 .countdown {
   color: #858585 !important;
+}
+.errMsgTxt {
+  margin-left: 0.2em;
+  color: #f66;
+}
+.icon-warning {
+  fill: #ff6700;
+}
+.errMsg {
+  margin-top: 14px;
+  font-size: 16px;
+  text-align: start;
+}
+.errMsg-s {
+  border-bottom: 1px solid #f66;
 }
 </style>
