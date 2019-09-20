@@ -55,6 +55,13 @@
   </div>
 </template>
 
+<script>
+import axios from 'axios'
+import md5 from 'blueimp-md5'
+export default {
+  data() {}
+}
+</script>
 <style lang="scss" scoped>
 $font-size: 18px;
 $weibo-color: #ee9696;
