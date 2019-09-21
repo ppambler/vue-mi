@@ -67,6 +67,11 @@
       </div>
       <div class="login-btn-default" @click="submit">{{ mainBtn }}</div>
       <div class="login-btn" @click="changeBtn">{{ subBtn }}</div>
+      <div class="pre-condition" v-show="!isSmsLogin">
+        <span class="register">立即注册</span>
+        <span style="color: #000;font-size:14px;">|</span>
+        <span class="forgot-password">忘记密码？</span>
+      </div>
       <div class="other-login">
         <fieldset class="oth-tit">
           <legend align="center" class="oth-txt">其他方式登录</legend>
@@ -160,6 +165,10 @@ export default {
       }
       // 如果有错误提示，那就不发请求哈！
       if (this.errMsg) {
+        return
+      }
+      // 60s不能再发请求
+      if (this.countdown !== 60) {
         return
       }
       let url = 'http://rap2api.taobao.org/app/mock/124878/api/v1/getCode'
@@ -357,12 +366,24 @@ $input-cursor-color: #000;
   border-radius: 5px;
 }
 .login-btn {
-  margin-bottom: 54px;
   line-height: 42px;
   border: 1px solid $login-btn-border-color;
   border-radius: 5px;
 }
+.pre-condition {
+  margin-top: 12px;
+  color: #b0b0b0;
+  font-size: 16px;
+  text-align: center;
+  .register {
+    padding-right: 10px;
+  }
+  .forgot-password {
+    padding-left: 10px;
+  }
+}
 .other-login {
+  margin-top: 40px;
   .oth-tit {
     padding-top: 10px;
     border-top: 1px solid #f2f2f2;
