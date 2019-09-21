@@ -269,7 +269,7 @@ export default {
       if (this.isSmsLogin) {
         data.code = this.code
       } else {
-        data.pwd = this.pwd
+        data.pwd = md5(this.pwd)
       }
       let url = 'http://rap2api.taobao.org/app/mock/124878/api/v1/login'
       this.isLoading = true
