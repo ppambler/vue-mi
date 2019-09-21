@@ -167,8 +167,16 @@ export default {
       this.isOpen = !this.isOpen
     },
     getCode() {
+      let reg = /^[1][3,4,5,7,8][0-9]{9}$/
       if (!this.username) {
         this.errMsg = '请输入手机号'
+        return
+      }
+      if (!reg.test(this.username)) {
+        this.errMsg = '手机号格式不正确'
+        this.$nextTick(() => {
+          this.$refs.code.classList.remove('errMsg-s')
+        })
         return
       }
       // 60s不能再发请求
@@ -176,8 +184,11 @@ export default {
         return
       }
       let url = 'http://rap2api.taobao.org/app/mock/124878/api/v1/getCode'
+      let data = {
+        username: this.username
+      }
       axios
-        .post(url, {retry: 5, retryDelay: 1000})
+        .post(url, data)
         .then(res => {
           console.log(res)
           this.timerId = setInterval(() => {
