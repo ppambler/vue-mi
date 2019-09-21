@@ -65,7 +65,14 @@
         </svg>
         <span class="errMsgTxt">{{ errMsg }}</span>
       </div>
-      <div class="login-btn-default" @click="submit">{{ mainBtn }}</div>
+      <div class="login-btn-default" @click="submit">
+        <div class="loading" v-show="isLoading">
+          <svg class="icon icon-loading" aria-hidden="true">
+            <use xlink:href="#icon-loading" />
+          </svg>
+        </div>
+        <span v-show="!isLoading">{{ mainBtn }}</span>
+      </div>
       <div class="login-btn" @click="changeBtn">{{ subBtn }}</div>
       <div class="pre-condition" v-show="!isSmsLogin">
         <span class="register">立即注册</span>
@@ -115,7 +122,8 @@ export default {
       errMsg: '',
       username: '',
       code: '',
-      pwd: ''
+      pwd: '',
+      isLoading: false
     }
   },
   computed: {
@@ -161,10 +169,6 @@ export default {
     getCode() {
       if (!this.username) {
         this.errMsg = '请输入手机号'
-        return
-      }
-      // 如果有错误提示，那就不发请求哈！
-      if (this.errMsg) {
         return
       }
       // 60s不能再发请求
@@ -255,6 +259,10 @@ export default {
         }
       }
 
+      if (this.isLoading) {
+        return
+      }
+
       let data = {
         username: this.username
       }
@@ -264,17 +272,28 @@ export default {
         data.pwd = this.pwd
       }
       let url = 'http://rap2api.taobao.org/app/mock/124878/api/v1/login'
-      axios.post(url, data).then(res => {
-        let status = res.data.status
-        if (status === 200) {
-          // todo：跳转到登录来源
-          console.log(
-            '跳转到登录来源，即你打开某个页面，然后提示你登录的那个位置'
-          )
-        } else {
-          this.errMsg = res.data.message
-        }
-      })
+      this.isLoading = true
+      axios
+        .post(url, data)
+        .then(res => {
+          let status = res.data.status
+          if (status === 200) {
+            // todo：跳转到登录来源
+            console.log(
+              '跳转到登录来源，即你打开某个页面，然后提示你登录的那个位置'
+            )
+          } else {
+            this.errMsg = res.data.message
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
+        .finally(() => {
+          setTimeout(() => {
+            this.isLoading = false
+          }, 1000)
+        })
     }
   }
 }
@@ -290,6 +309,14 @@ $login-btn-color: #ff6700;
 $login-btn-border-color: #d3d3d3;
 $input-border-color: #c7c7c7;
 $input-cursor-color: #000;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 .layout {
   height: 100vh;
   padding: 0 12px;
@@ -358,12 +385,17 @@ $input-cursor-color: #000;
 }
 
 .login-btn-default {
+  display: flex;
+  justify-content: center;
   margin-top: 24px;
   margin-bottom: 28px;
   color: #fff;
   line-height: 42px;
   background-color: $login-btn-color;
   border-radius: 5px;
+  > .loading {
+    animation: spin 1s infinite linear;
+  }
 }
 .login-btn {
   line-height: 42px;
@@ -460,5 +492,8 @@ $input-cursor-color: #000;
 }
 .errMsg-s {
   border-bottom: 1px solid #f66;
+}
+.icon-loading {
+  fill: #fff;
 }
 </style>
