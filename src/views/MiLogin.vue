@@ -7,7 +7,7 @@
       <h4 class="title">小米帐号登录</h4>
     </div>
     <div class="login">
-      <div class="username" :class="errMsgClasses">
+      <div class="username" :class="errMsgClasses" ref="username">
         <div class="area-code" v-show="isSmsLogin">
           <span class="code-txt">+86</span>
           <svg class="icon" aria-hidden="true">
@@ -17,22 +17,39 @@
         <div class="input-username" @input="clearErr">
           <input
             type="text"
-            v-model="phone"
+            v-model="username"
             :placeholder="placeholderTxt"
             autocomplete="off"
           />
         </div>
       </div>
-      <div class="code" v-show="isSmsLogin">
+      <div class="code" ref="code" :class="errMsgClasses" v-show="isSmsLogin">
         <div class="input-code">
-          <input type="text" placeholder="短信验证码" autocomplete="off" />
+          <input
+            type="text"
+            v-model="code"
+            @input="clearErr"
+            placeholder="短信验证码"
+            autocomplete="off"
+          />
         </div>
         <div class="get-code" :class="codeClasses" @click="getCode">
           {{ codeMsg }}
         </div>
       </div>
-      <div class="password" v-show="!isSmsLogin">
-        <input :type="pwdType" placeholder="密码" autocomplete="off" />
+      <div
+        class="password"
+        v-show="!isSmsLogin"
+        ref="pwd"
+        :class="errMsgClasses"
+      >
+        <input
+          :type="pwdType"
+          v-model="pwd"
+          @input="clearErr"
+          placeholder="密码"
+          autocomplete="off"
+        />
         <svg
           class="icon"
           :class="eyeClasses"
@@ -48,7 +65,7 @@
         </svg>
         <span class="errMsgTxt">{{ errMsg }}</span>
       </div>
-      <div class="login-btn-default">{{ mainBtn }}</div>
+      <div class="login-btn-default" @click="submit">{{ mainBtn }}</div>
       <div class="login-btn" @click="changeBtn">{{ subBtn }}</div>
       <div class="other-login">
         <fieldset class="oth-tit">
@@ -91,7 +108,9 @@ export default {
       countdown: 60,
       timerId: null,
       errMsg: '',
-      phone: ''
+      username: '',
+      code: '',
+      pwd: ''
     }
   },
   computed: {
@@ -129,28 +148,124 @@ export default {
   methods: {
     changeBtn() {
       this.isSmsLogin = !this.isSmsLogin
+      this.clearErr()
     },
     toggleOpen() {
       this.isOpen = !this.isOpen
     },
     getCode() {
-      if (!this.phone) {
+      if (!this.username) {
         this.errMsg = '请输入手机号'
         return
       }
-      this.timerId = setInterval(() => {
-        this.countdown--
-        this.codeMsg = `重新发送(${this.countdown})`
-        if (this.countdown === 0) {
-          clearInterval(this.timerId)
-          this.timerId = null
-          this.countdown = 60
-          this.codeMsg = '重新发送'
-        }
-      }, 1000)
+      // 如果有错误提示，那就不发请求哈！
+      if (this.errMsg) {
+        return
+      }
+      let url = 'http://rap2api.taobao.org/app/mock/124878/api/v1/getCode'
+      axios
+        .post(url, {retry: 5, retryDelay: 1000})
+        .then(res => {
+          console.log(res)
+          this.timerId = setInterval(() => {
+            this.countdown--
+            this.codeMsg = `重新发送(${this.countdown})`
+            if (this.countdown === 0) {
+              clearInterval(this.timerId)
+              this.timerId = null
+              this.countdown = 60
+              this.codeMsg = '重新发送'
+            }
+          }, 1000)
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     clearErr() {
       this.errMsg = ''
+    },
+    submit() {
+      // 用户咩有输入手机号和用户名，一个字符都没有输入哈
+      if (!this.username) {
+        if (this.isSmsLogin) {
+          this.errMsg = '请输入手机号'
+          this.$nextTick(() => {
+            this.$refs.code.classList.remove('errMsg-s')
+          })
+        } else {
+          this.errMsg = '请输入账号'
+          this.$nextTick(() => {
+            this.$refs.pwd.classList.remove('errMsg-s')
+          })
+        }
+        this.$refs.username.classList.add('errMsg-s')
+        return
+      } else {
+        if (this.isSmsLogin) {
+          let reg = /^[1][3,4,5,7,8][0-9]{9}$/
+          if (!reg.test(this.username)) {
+            this.errMsg = '手机号格式不正确'
+            this.$refs.username.classList.add('errMsg-s')
+            this.$nextTick(() => {
+              this.$refs.code.classList.remove('errMsg-s')
+            })
+            return
+          }
+        } else {
+          if (!this.pwd) {
+            this.errMsg = '请输入密码'
+            this.$refs.pwd.classList.add('errMsg-s')
+            this.$nextTick(() => {
+              this.$refs.username.classList.remove('errMsg-s')
+            })
+            return
+          }
+        }
+      }
+
+      // 校验短信验证码
+      if (this.isSmsLogin) {
+        if (!this.code) {
+          this.errMsg = '请输入短信验证码'
+          this.$refs.code.classList.add('errMsg-s')
+          this.$nextTick(() => {
+            this.$refs.username.classList.remove('errMsg-s')
+          })
+          return
+        } else {
+          let reg = /^\d{6}$/
+          if (!reg.test(this.code)) {
+            this.errMsg = '短信验证码不正确'
+            this.$refs.code.classList.add('errMsg-s')
+            this.$nextTick(() => {
+              this.$refs.username.classList.remove('errMsg-s')
+            })
+            return
+          }
+        }
+      }
+
+      let data = {
+        username: this.username
+      }
+      if (this.isSmsLogin) {
+        data.code = this.code
+      } else {
+        data.pwd = this.pwd
+      }
+      let url = 'http://rap2api.taobao.org/app/mock/124878/api/v1/login'
+      axios.post(url, data).then(res => {
+        let status = res.data.status
+        if (status === 200) {
+          // todo：跳转到登录来源
+          console.log(
+            '跳转到登录来源，即你打开某个页面，然后提示你登录的那个位置'
+          )
+        } else {
+          this.errMsg = res.data.message
+        }
+      })
     }
   }
 }
